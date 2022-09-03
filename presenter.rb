@@ -4,8 +4,7 @@ module Presenter
     # print the welcome message
     ["###################################",
      "#   Welcome to Clivia Generator   #",
-     "###################################"
-    ]
+     "###################################"]
   end
 
   def print_score(score)
@@ -17,5 +16,5 @@ module Presenter
       [scor[:name], scor[:score]]
     end
     table
-  end 
+  end
 end
