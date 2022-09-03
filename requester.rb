@@ -3,15 +3,10 @@ module Requester
     # prompt the user for the "random | scores | exit" actions
     options = ["random", "scores", "exit"]
     action = ""
-      loop do
         puts options.join(" | ")
         print "> "
         action = gets.chomp
-        # Hacer el request!
-        break if options.include?(action)
-    
-        puts "Invalid option"
-      end
+        action.downcase
   end
 
   def ask_question(question)
@@ -20,7 +15,7 @@ module Requester
     # show the question
     puts "Question: #{question[:question]}"
     # show each one of the options
-   p question[:correct_answer]
+    # p question[:correct_answer]
     answer = question[:incorrect_answers].push(question[:correct_answer])
     # grab user input
     gets_option(answer.shuffle())
@@ -28,8 +23,20 @@ module Requester
 
   def will_save?(score)
     # show user's score
+    puts "-"*50
+    puts "Well done! Your score is #{score}"
     # ask the user to save the score
+    puts "Do you want to save your score? (y/n)"
+    print "> "
     # grab user input
+    answer = gets.chomp
+    if answer.downcase == "y"
+      puts "Type the name to assign to the score"
+      print "> "
+      name = gets.chomp
+      name = "Anonymous" if name.empty?
+      {name: name, score: score}
+    end     
     # prompt the user to give the score a name if there is no name given, set it as Anonymous
   end
   #gets_option(prompt, options)
@@ -38,8 +45,8 @@ module Requester
     # puts "#{options}"
     print "> "
     answer = gets.chomp
-    # Hacer el request!
     #options.include?(action)
-    answer
+    return nil if answer.empty?
+    options[answer.to_i-1]
   end
 end
