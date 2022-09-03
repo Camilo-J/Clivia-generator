@@ -7,6 +7,7 @@ require_relative "presenter"
 require_relative "requester"
 class CliviaGenerator
   attr_reader :coder
+
   # maybe we need to include a couple of modules?
   include Presenter
   include Requester
@@ -16,7 +17,7 @@ class CliviaGenerator
     @response = nil
     @coder = HTMLEntities.new
     @question = nil
-    @score = 0 
+    @score = 0
   end
 
   def start
@@ -27,13 +28,17 @@ class CliviaGenerator
     # keep going until the user types exit
     until action == "exit"
       puts print_welcome
-      action = select_main_menu_action
-      case action
-      when "random" then random_trivia
-      when "scores" then print_scores
-      when "exit" then puts "Thanks for using Clivia"
-      else
-        puts "Invalid option"
+      begin
+        action = select_main_menu_action
+        case action
+        when "random" then random_trivia
+        when "scores" then print_scores
+        when "exit" then puts "Thanks for using Clivia"
+        else
+          puts "Invalid option"
+        end
+      rescue Errno::ENOENT => e
+        puts e.message
       end
     end
   end
@@ -56,16 +61,16 @@ class CliviaGenerator
       # if response is correct, put a correct message and increase score
       # if response is incorrect, put an incorrect message, and which was the correct answer
       if answer == data_ques[:correct_answer]
-        puts  "#{answer}... Correct!"
-        puts  "You win 10 points"
-        puts  "-" * 20
+        puts "#{answer}... Correct!"
+        puts "You win 10 points"
+        puts "-" * 20
         @score += 10
       else
-        puts  "#{answer}... Incorrect!"
+        puts "#{answer}... Incorrect!"
         puts "The correct answer was: #{data_ques[:correct_answer]}"
-        puts  "-" * 20
+        puts "-" * 20
       end
-      indi += 1 
+      indi += 1
     end
     # once the questions end, show user's score and promp to save it
     will_save?(@score)
@@ -74,19 +79,20 @@ class CliviaGenerator
   def save(data)
     # write to file the scores data
     @score = 0
-    #  File.write(@file, JSON.dump(data),mode: "a+")
     begin
-      File.write(@file,[].to_json) if File.read(@file).empty?
-    rescue #=> Errno::Enoent
-      File.write(@file,[].to_json)
+      File.write(@file, [].to_json) if File.read(@file).empty?
+    rescue Errno::ENOENT
+      File.write(@file, [].to_json)
     end
     data_parse = JSON.parse(File.read(@file), symbolize_names: true)
-    File.open(@file,"w") { |f| f.write((data_parse.push(data)).to_json) }
+    new_data = data_parse.push(data)
+    # File.open(@file,"w") { |f| f.write((data_parse.push(data)).to_json) }
+    File.write(@file, new_data.to_json)
   end
 
   def parse_scores
     # get the scores data from file
-    scores = JSON.parse(File.read(@file), symbolize_names: true)
+    JSON.parse(File.read(@file), symbolize_names: true)
   end
 
   def load_questions
@@ -100,10 +106,10 @@ class CliviaGenerator
     # questions came with an unexpected structure, clean them to make it usable for our purposes
     results_got = @response[:results]
     @question = results_got.each do |result|
-    result[:question] =  coder.decode(result[:question])
-    # test to decode incorrect answer and correct answer
-    result[:correct_answer] = coder.decode(result[:correct_answer] )
-    result[:incorrect_answer] = result[:incorrect_answers].map{ |ans| coder.decode(ans) }
+      result[:question] = coder.decode(result[:question])
+      # test to decode incorrect answer and correct answer
+      result[:correct_answer] = coder.decode(result[:correct_answer])
+      result[:incorrect_answer] = result[:incorrect_answers].map { |ans| coder.decode(ans) }
     end
   end
 
