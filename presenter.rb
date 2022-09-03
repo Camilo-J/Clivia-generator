@@ -1,3 +1,4 @@
+require "terminal-table"
 module Presenter
   def print_welcome
     # print the welcome message
@@ -9,5 +10,12 @@ module Presenter
 
   def print_score(score)
     # print the score message
-  end
+    table = Terminal::Table.new
+    table.title = "Top Scores"
+    table.headings = ["Name", "Score"]
+    table.rows = score.map do |scor|
+      [scor[:name], scor[:score]]
+    end
+    table
+  end 
 end
